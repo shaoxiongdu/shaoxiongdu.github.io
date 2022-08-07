@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>JVM-本地方法栈 | ShaoxiongDu'Blog</title><meta name="keywords" content="JVM,Java"><meta name="author" content="杜少雄"><meta name="copyright" content="杜少雄"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="本地方法栈一、本地方法栈在运行时数据区中的位置 二、定义 Java虚拟机栈用于管理Java方法的调用，而本地方法栈用于管理本地方法的调用 本地方法栈，也是线程私有的。 允许被实现成固定或者是可动态拓展的内存大小。（在内存溢出方面是相同的） 如果线程请求分配的栈容量超过本地方法栈允许的最大容量，Java虚拟机将会抛出一个StackOverFlowError异常。 如果本地方法栈可以动态扩展，并且在尝">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>JVM-本地方法栈 | ShaoxiongDu'Blog</title><meta name="keywords" content="JVM,Java"><meta name="author" content="杜少雄"><meta name="copyright" content="杜少雄"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="本地方法栈一、本地方法栈在运行时数据区中的位置 二、定义 Java虚拟机栈用于管理Java方法的调用，而本地方法栈用于管理本地方法的调用 本地方法栈，也是线程私有的。 允许被实现成固定或者是可动态拓展的内存大小。（在内存溢出方面是相同的） 如果线程请求分配的栈容量超过本地方法栈允许的最大容量，Java虚拟机将会抛出一个StackOverFlowError异常。 如果本地方法栈可以动态扩展，并且在尝">
 <meta property="og:type" content="article">
 <meta property="og:title" content="JVM-本地方法栈">
 <meta property="og:url" content="https://shaoxiongdu.cn/2022/08/06/JVM-%E6%9C%AC%E5%9C%B0%E6%96%B9%E6%B3%95%E6%A0%88/">
@@ -132,26 +132,11 @@
       }
       const t = saveToLocal.get('theme')
     
-          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
-          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
-          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
-          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
-
-          if (t === undefined) {
-            if (isLightMode) activateLightMode()
-            else if (isDarkMode) activateDarkMode()
-            else if (isNotSpecified || hasNoSupport) {
-              const now = new Date()
-              const hour = now.getHours()
-              const isNight = hour <= 6 || hour >= 18
-              isNight ? activateDarkMode() : activateLightMode()
-            }
-            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
-              if (saveToLocal.get('theme') === undefined) {
-                e.matches ? activateDarkMode() : activateLightMode()
-              }
-            })
-          } else if (t === 'light') activateLightMode()
+          const now = new Date()
+          const hour = now.getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else if (t === 'light') activateLightMode()
           else activateDarkMode()
         
       const asideStatus = saveToLocal.get('aside-status')

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>JVM-Java内存模型 | ShaoxiongDu'Blog</title><meta name="keywords" content="JVM,Java"><meta name="author" content="杜少雄"><meta name="copyright" content="杜少雄"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="文章已同步至GitHub开源项目: JVM底层原理解析  Java内存模型​ JVM虚拟机规范中曾经试图定义一种Java内存模型，来屏蔽掉各种硬件和操作系统的内存访问差异，以实现让Java程序在各种平台下都可以达到一致性的内存访问效果。 ​然而定义这样一套内存模型并非很容易，这个模型必须足够严谨，才能让Java的并发内存访问操作不会有歧义。但是也必须足够宽松，这样使得虚拟机的具体实现能够有自由的">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>JVM-Java内存模型 | ShaoxiongDu'Blog</title><meta name="keywords" content="JVM,Java"><meta name="author" content="杜少雄"><meta name="copyright" content="杜少雄"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="文章已同步至GitHub开源项目: JVM底层原理解析  Java内存模型​ JVM虚拟机规范中曾经试图定义一种Java内存模型，来屏蔽掉各种硬件和操作系统的内存访问差异，以实现让Java程序在各种平台下都可以达到一致性的内存访问效果。 ​然而定义这样一套内存模型并非很容易，这个模型必须足够严谨，才能让Java的并发内存访问操作不会有歧义。但是也必须足够宽松，这样使得虚拟机的具体实现能够有自由的">
 <meta property="og:type" content="article">
 <meta property="og:title" content="JVM-Java内存模型">
 <meta property="og:url" content="https://shaoxiongdu.cn/2022/08/06/JVM-Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/">
@@ -132,26 +132,11 @@
       }
       const t = saveToLocal.get('theme')
     
-          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
-          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
-          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
-          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
-
-          if (t === undefined) {
-            if (isLightMode) activateLightMode()
-            else if (isDarkMode) activateDarkMode()
-            else if (isNotSpecified || hasNoSupport) {
-              const now = new Date()
-              const hour = now.getHours()
-              const isNight = hour <= 6 || hour >= 18
-              isNight ? activateDarkMode() : activateLightMode()
-            }
-            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
-              if (saveToLocal.get('theme') === undefined) {
-                e.matches ? activateDarkMode() : activateLightMode()
-              }
-            })
-          } else if (t === 'light') activateLightMode()
+          const now = new Date()
+          const hour = now.getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else if (t === 'light') activateLightMode()
           else activateDarkMode()
         
       const asideStatus = saveToLocal.get('aside-status')

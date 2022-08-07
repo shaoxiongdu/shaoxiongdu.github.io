@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>程序员的一天 | ShaoxiongDu'Blog</title><meta name="keywords" content="生活"><meta name="author" content="杜少雄"><meta name="copyright" content="杜少雄"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="早上八点醒来，又是阴天，云朵好懒啊，不涂防晒，变成乌云，最后委屈的哭了出来。 冒着雨来到公司，终于准点打卡，记得初恋总是埋怨我约会迟到，可能被偏爱的人才会有恃无恐，后来我终于学会了准时，却永远错过了17岁时年少的喜欢。 看着评审会的同事们，我非常好奇，他们的满目山河在哪里，他们的可望而不可得又在哪里，可是又是怎样的缘分，让我们一起参加了这样的会。 会上产品说需求不会再变了时，我想起来十八岁那年平安">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>程序员的一天 | ShaoxiongDu'Blog</title><meta name="keywords" content="生活"><meta name="author" content="杜少雄"><meta name="copyright" content="杜少雄"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="早上八点醒来，又是阴天，云朵好懒啊，不涂防晒，变成乌云，最后委屈的哭了出来。 冒着雨来到公司，终于准点打卡，记得初恋总是埋怨我约会迟到，可能被偏爱的人才会有恃无恐，后来我终于学会了准时，却永远错过了17岁时年少的喜欢。 看着评审会的同事们，我非常好奇，他们的满目山河在哪里，他们的可望而不可得又在哪里，可是又是怎样的缘分，让我们一起参加了这样的会。 会上产品说需求不会再变了时，我想起来十八岁那年平安">
 <meta property="og:type" content="article">
 <meta property="og:title" content="程序员的一天">
 <meta property="og:url" content="https://shaoxiongdu.cn/2022/08/02/%E7%A8%8B%E5%BA%8F%E5%91%98%E7%9A%84%E4%B8%80%E5%A4%A9/">
@@ -131,26 +131,11 @@
       }
       const t = saveToLocal.get('theme')
     
-          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
-          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
-          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
-          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
-
-          if (t === undefined) {
-            if (isLightMode) activateLightMode()
-            else if (isDarkMode) activateDarkMode()
-            else if (isNotSpecified || hasNoSupport) {
-              const now = new Date()
-              const hour = now.getHours()
-              const isNight = hour <= 6 || hour >= 18
-              isNight ? activateDarkMode() : activateLightMode()
-            }
-            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
-              if (saveToLocal.get('theme') === undefined) {
-                e.matches ? activateDarkMode() : activateLightMode()
-              }
-            })
-          } else if (t === 'light') activateLightMode()
+          const now = new Date()
+          const hour = now.getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else if (t === 'light') activateLightMode()
           else activateDarkMode()
         
       const asideStatus = saveToLocal.get('aside-status')

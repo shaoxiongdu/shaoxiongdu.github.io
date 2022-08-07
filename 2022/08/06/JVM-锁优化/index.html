@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>JVM-锁优化 | ShaoxiongDu'Blog</title><meta name="keywords" content="JVM,Java"><meta name="author" content="杜少雄"><meta name="copyright" content="杜少雄"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="锁优化 文章已同步至GitHub开源项目: JVM底层原理解析  ​高效并发是JDK5升级到JDK6后一项重要的改进，HotSpot虚拟机开发团队在这个版本上花费了巨大的资源去实现各种锁优化。比如，自旋锁，自适应自旋锁，锁消除，锁膨胀，轻量级锁，偏向锁等。这些技术都是为了在线程之间更高效的共享数据及解决竞争问题。从而提高程序的运行效率。 自旋锁和自适应自旋锁 自旋锁  ​ 在互斥同步的时候，对性能">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>JVM-锁优化 | ShaoxiongDu'Blog</title><meta name="keywords" content="JVM,Java"><meta name="author" content="杜少雄"><meta name="copyright" content="杜少雄"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="锁优化 文章已同步至GitHub开源项目: JVM底层原理解析  ​高效并发是JDK5升级到JDK6后一项重要的改进，HotSpot虚拟机开发团队在这个版本上花费了巨大的资源去实现各种锁优化。比如，自旋锁，自适应自旋锁，锁消除，锁膨胀，轻量级锁，偏向锁等。这些技术都是为了在线程之间更高效的共享数据及解决竞争问题。从而提高程序的运行效率。 自旋锁和自适应自旋锁 自旋锁  ​ 在互斥同步的时候，对性能">
 <meta property="og:type" content="article">
 <meta property="og:title" content="JVM-锁优化">
 <meta property="og:url" content="https://shaoxiongdu.cn/2022/08/06/JVM-%E9%94%81%E4%BC%98%E5%8C%96/">
@@ -132,26 +132,11 @@
       }
       const t = saveToLocal.get('theme')
     
-          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
-          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
-          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
-          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
-
-          if (t === undefined) {
-            if (isLightMode) activateLightMode()
-            else if (isDarkMode) activateDarkMode()
-            else if (isNotSpecified || hasNoSupport) {
-              const now = new Date()
-              const hour = now.getHours()
-              const isNight = hour <= 6 || hour >= 18
-              isNight ? activateDarkMode() : activateLightMode()
-            }
-            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
-              if (saveToLocal.get('theme') === undefined) {
-                e.matches ? activateDarkMode() : activateLightMode()
-              }
-            })
-          } else if (t === 'light') activateLightMode()
+          const now = new Date()
+          const hour = now.getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else if (t === 'light') activateLightMode()
           else activateDarkMode()
         
       const asideStatus = saveToLocal.get('aside-status')

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>JVM-双亲委派机制 | ShaoxiongDu'Blog</title><meta name="keywords" content="JVM,Java"><meta name="author" content="杜少雄"><meta name="copyright" content="杜少雄"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="双亲委派机制介绍​ Java虚拟机对class文件采用的是按需加载的方式， ​ 也就是说当需要使用该类时才会将它的class文件加载到内存生成的class对象。 ​ 而且加载某个类的class文件时，java虚拟机采用的是双亲委派模式。 ​ 即把请求交由父类处理，它是一种任务委派模式 工作原理  如果一个类加载器收到了类加载的请求，它并不会自己加载，而是先把请求委托给父类的加载器执行 如果父类加载">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>JVM-双亲委派机制 | ShaoxiongDu'Blog</title><meta name="keywords" content="JVM,Java"><meta name="author" content="杜少雄"><meta name="copyright" content="杜少雄"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="双亲委派机制介绍​ Java虚拟机对class文件采用的是按需加载的方式， ​ 也就是说当需要使用该类时才会将它的class文件加载到内存生成的class对象。 ​ 而且加载某个类的class文件时，java虚拟机采用的是双亲委派模式。 ​ 即把请求交由父类处理，它是一种任务委派模式 工作原理  如果一个类加载器收到了类加载的请求，它并不会自己加载，而是先把请求委托给父类的加载器执行 如果父类加载">
 <meta property="og:type" content="article">
 <meta property="og:title" content="JVM-双亲委派机制">
 <meta property="og:url" content="https://shaoxiongdu.cn/2022/08/06/JVM-%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%9C%BA%E5%88%B6/">
@@ -132,26 +132,11 @@
       }
       const t = saveToLocal.get('theme')
     
-          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
-          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
-          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
-          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
-
-          if (t === undefined) {
-            if (isLightMode) activateLightMode()
-            else if (isDarkMode) activateDarkMode()
-            else if (isNotSpecified || hasNoSupport) {
-              const now = new Date()
-              const hour = now.getHours()
-              const isNight = hour <= 6 || hour >= 18
-              isNight ? activateDarkMode() : activateLightMode()
-            }
-            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
-              if (saveToLocal.get('theme') === undefined) {
-                e.matches ? activateDarkMode() : activateLightMode()
-              }
-            })
-          } else if (t === 'light') activateLightMode()
+          const now = new Date()
+          const hour = now.getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else if (t === 'light') activateLightMode()
           else activateDarkMode()
         
       const asideStatus = saveToLocal.get('aside-status')

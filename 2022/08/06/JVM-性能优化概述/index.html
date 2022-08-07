@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>JVM-性能优化概述 | ShaoxiongDu'Blog</title><meta name="keywords" content="JVM,Java"><meta name="author" content="杜少雄"><meta name="copyright" content="杜少雄"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="性能优化概述一 背景说明 生产环境中出现的问题 发生内存泄漏如何处理？ 给服务器分配多少内存合适？ 如何对垃圾回收器进行性能调优？ 生产环境中CPU负载过高如何处理？ 生产环境该给应用分配多少线程？ 不加log，如何确定请求执行到了某一行代码？ 不加log，如何实时查看某个方法的入参与返回值？   为什么要调优？ 防止出现OOM 解决OOM 减少Full GC的频率   不同阶段的考虑 上线前 运">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>JVM-性能优化概述 | ShaoxiongDu'Blog</title><meta name="keywords" content="JVM,Java"><meta name="author" content="杜少雄"><meta name="copyright" content="杜少雄"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="性能优化概述一 背景说明 生产环境中出现的问题 发生内存泄漏如何处理？ 给服务器分配多少内存合适？ 如何对垃圾回收器进行性能调优？ 生产环境中CPU负载过高如何处理？ 生产环境该给应用分配多少线程？ 不加log，如何确定请求执行到了某一行代码？ 不加log，如何实时查看某个方法的入参与返回值？   为什么要调优？ 防止出现OOM 解决OOM 减少Full GC的频率   不同阶段的考虑 上线前 运">
 <meta property="og:type" content="article">
 <meta property="og:title" content="JVM-性能优化概述">
 <meta property="og:url" content="https://shaoxiongdu.cn/2022/08/06/JVM-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E6%A6%82%E8%BF%B0/">
@@ -132,26 +132,11 @@
       }
       const t = saveToLocal.get('theme')
     
-          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
-          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
-          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
-          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
-
-          if (t === undefined) {
-            if (isLightMode) activateLightMode()
-            else if (isDarkMode) activateDarkMode()
-            else if (isNotSpecified || hasNoSupport) {
-              const now = new Date()
-              const hour = now.getHours()
-              const isNight = hour <= 6 || hour >= 18
-              isNight ? activateDarkMode() : activateLightMode()
-            }
-            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
-              if (saveToLocal.get('theme') === undefined) {
-                e.matches ? activateDarkMode() : activateLightMode()
-              }
-            })
-          } else if (t === 'light') activateLightMode()
+          const now = new Date()
+          const hour = now.getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else if (t === 'light') activateLightMode()
           else activateDarkMode()
         
       const asideStatus = saveToLocal.get('aside-status')

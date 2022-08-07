@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>JVM-垃圾回收器 | ShaoxiongDu'Blog</title><meta name="keywords" content="JVM,Java"><meta name="author" content="杜少雄"><meta name="copyright" content="杜少雄"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="垃圾回收器一 GC的分类与性能指标 按线程数分 串行垃圾回收器 但CPU，配置较低，只有一条GC线程 并行垃圾回收器 并发较强的CPU 多条GC    按照工作模式 并发式垃圾回收器 与应用程序线程交替工作，以尽可能减少应用程序的停顿时间。  独占式垃圾回收器 一旦运行，就停止应用程序中的所有用户线程，直到垃圾回收过程完全结束。      按碎片处理方式 压缩式垃圾回收器 ​ 回收完成后，对存活对">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>JVM-垃圾回收器 | ShaoxiongDu'Blog</title><meta name="keywords" content="JVM,Java"><meta name="author" content="杜少雄"><meta name="copyright" content="杜少雄"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="垃圾回收器一 GC的分类与性能指标 按线程数分 串行垃圾回收器 但CPU，配置较低，只有一条GC线程 并行垃圾回收器 并发较强的CPU 多条GC    按照工作模式 并发式垃圾回收器 与应用程序线程交替工作，以尽可能减少应用程序的停顿时间。  独占式垃圾回收器 一旦运行，就停止应用程序中的所有用户线程，直到垃圾回收过程完全结束。      按碎片处理方式 压缩式垃圾回收器 ​ 回收完成后，对存活对">
 <meta property="og:type" content="article">
 <meta property="og:title" content="JVM-垃圾回收器">
 <meta property="og:url" content="https://shaoxiongdu.cn/2022/08/06/JVM-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E5%99%A8/">
@@ -132,26 +132,11 @@
       }
       const t = saveToLocal.get('theme')
     
-          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
-          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
-          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
-          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
-
-          if (t === undefined) {
-            if (isLightMode) activateLightMode()
-            else if (isDarkMode) activateDarkMode()
-            else if (isNotSpecified || hasNoSupport) {
-              const now = new Date()
-              const hour = now.getHours()
-              const isNight = hour <= 6 || hour >= 18
-              isNight ? activateDarkMode() : activateLightMode()
-            }
-            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
-              if (saveToLocal.get('theme') === undefined) {
-                e.matches ? activateDarkMode() : activateLightMode()
-              }
-            })
-          } else if (t === 'light') activateLightMode()
+          const now = new Date()
+          const hour = now.getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else if (t === 'light') activateLightMode()
           else activateDarkMode()
         
       const asideStatus = saveToLocal.get('aside-status')
