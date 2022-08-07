@@ -4,6 +4,31 @@
   
     
     <entry>
+      <title>Apk安装流程</title>
+      <link href="/2022/08/07/%E5%AE%89%E5%8D%93-Apk%E5%AE%89%E8%A3%85%E6%B5%81%E7%A8%8B/"/>
+      <url>/2022/08/07/%E5%AE%89%E5%8D%93-Apk%E5%AE%89%E8%A3%85%E6%B5%81%E7%A8%8B/</url>
+      
+        <content type="html"><![CDATA[<h2 id="Apk安装的四种方式："><a href="#Apk安装的四种方式：" class="headerlink" title="Apk安装的四种方式："></a>Apk安装的四种方式：</h2><ol><li>系统应用安装：没有安装界面，在开机时自动完成。</li><li>网络下载应用安装:  没有安装界面，在应用市场完成。</li><li>ADB命令安装:  没有安装界面，通过命令直接安装。</li><li>外部设备安装:  有安装界面，通过SD卡等外部设备安装，由packageInstaller处理安装逻辑。</li></ol><h2 id="涉及到的目录："><a href="#涉及到的目录：" class="headerlink" title="涉及到的目录："></a>涉及到的目录：</h2><p>1.system&#x2F;app ： 系统自带的应用程序，获得root权限才能删除。<br>2.data&#x2F;app ： 用户程序安装目录，安装时会把apk文件复制到此目录下。<br>3.data&#x2F;data ： 存放应用程序的数据。<br>4.data&#x2F;dalvik-cache ： 将apk中的dex文件安装到该目录下，dex文件即为可执行文件。</p><h2 id="大致安装过程"><a href="#大致安装过程" class="headerlink" title="大致安装过程"></a>大致安装过程</h2><ol><li><h4 id="拷贝apk到指定的目录"><a href="#拷贝apk到指定的目录" class="headerlink" title="拷贝apk到指定的目录"></a>拷贝apk到指定的目录</h4></li></ol><ul><li>用户安装的apk首先会拷贝到&#x2F;data&#x2F;app下</li><li>但系统出厂的apk文件会被放到&#x2F;system分区下</li></ul><ol start="2"><li><h4 id="加载apk、拷贝文件、创建应用的数据目录："><a href="#加载apk、拷贝文件、创建应用的数据目录：" class="headerlink" title="加载apk、拷贝文件、创建应用的数据目录："></a>加载apk、拷贝文件、创建应用的数据目录：</h4><p>为了加快APP的启动速度，apk在安装的时候，会首先将APP的可执行文件（dex）拷贝到&#x2F;data&#x2F;dalvik-cache目录下，缓存起来。再在&#x2F;data&#x2F;data&#x2F;目录下创建应用程序的数据目录，用来存放应用的数据库、xml文件、cache、二进制的so动态库等。</p></li><li><h4 id="解析apk的AndroidManifest-xml文件："><a href="#解析apk的AndroidManifest-xml文件：" class="headerlink" title="解析apk的AndroidManifest.xml文件："></a>解析apk的AndroidManifest.xml文件：</h4><p>在安装apk的过程中，会解析apk的AndroidManifest.xml文件，将apk的权限、应用包名、apk的安装位置、版本、userID等重要信息保存在&#x2F;data&#x2F;system&#x2F;packages.xml文件中。这些操作都是在PackageManagerService中完成的。</p></li><li><h4 id="显示icon图标"><a href="#显示icon图标" class="headerlink" title="显示icon图标"></a>显示icon图标</h4><p>应用程序经过PMS中的逻辑处理后，发送安装成功的广播,<br>Launcher收到广播之后，显示其icon。</p></li></ol>]]></content>
+      
+      
+      <categories>
+          
+          <category> 技术 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 安卓 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>GPU负载分析下的最佳实践</title>
       <link href="/2022/08/07/%E5%AE%89%E5%8D%93-GPU%E8%B4%9F%E8%BD%BD%E5%88%86%E6%9E%90%E4%B8%8B%E7%9A%84%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5/"/>
       <url>/2022/08/07/%E5%AE%89%E5%8D%93-GPU%E8%B4%9F%E8%BD%BD%E5%88%86%E6%9E%90%E4%B8%8B%E7%9A%84%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5/</url>
