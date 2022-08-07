@@ -1,0 +1,390 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>JVM-类加载过程 | ShaoxiongDu'Blog</title><meta name="keywords" content="JVM,Java"><meta name="author" content="杜少雄"><meta name="copyright" content="杜少雄"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="类加载的过程 类加载的过程主要分为三个阶段 加载，链接，初始化。 而链接阶段又可以细分为验证，准备，解析三个子阶段。 接下来，我们详细分析下类加载的过程。 加载过程加载过程需要完成以下三个事情:  通过一个类的全限定名获取定义此类的二进制字节流；  将这个字节流所代表的的静态存储结构转化为方法区的运行时数据结构；  在内存中生成一个代表这个类的java.lang.Class对象，作为方法区这个类的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JVM-类加载过程">
+<meta property="og:url" content="https://shaoxiongdu.cn/JVM-%E7%B1%BB%E5%8A%A0%E8%BD%BD%E8%BF%87%E7%A8%8B/">
+<meta property="og:site_name" content="ShaoxiongDu&#39;Blog">
+<meta property="og:description" content="类加载的过程 类加载的过程主要分为三个阶段 加载，链接，初始化。 而链接阶段又可以细分为验证，准备，解析三个子阶段。 接下来，我们详细分析下类加载的过程。 加载过程加载过程需要完成以下三个事情:  通过一个类的全限定名获取定义此类的二进制字节流；  将这个字节流所代表的的静态存储结构转化为方法区的运行时数据结构；  在内存中生成一个代表这个类的java.lang.Class对象，作为方法区这个类的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208051415812.png">
+<meta property="article:published_time" content="2022-08-06T12:26:30.000Z">
+<meta property="article:modified_time" content="2022-08-07T09:27:51.261Z">
+<meta property="article:author" content="杜少雄">
+<meta property="article:tag" content="JVM">
+<meta property="article:tag" content="Java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208051415812.png"><link rel="shortcut icon" href="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208061641187.jpeg"><link rel="canonical" href="https://shaoxiongdu.cn/JVM-%E7%B1%BB%E5%8A%A0%E8%BD%BD%E8%BF%87%E7%A8%8B/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//fonts.googleapis.com" crossorigin=""/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="manifest" href="/pwa/manifest.json"/><link rel="apple-touch-icon" sizes="180x180" href="/pwa/apple-touch-icon.png"/><link rel="icon" type="image/png" sizes="32x32" href="/pwa/32.png"/><link rel="icon" type="image/png" sizes="16x16" href="/pwa/16.png"/><link rel="mask-icon" href="/pwa/safari-pinned-tab.svg" color="#5bbad5"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?f405b56cc9dda40c26acd303eb5b4b7a";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Titillium+Web&amp;display=swap" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁体","msgToSimplifiedChinese":"简体"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: 杜少雄","link":"链接: ","source":"来源: ShaoxiongDu'Blog","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'JVM-类加载过程',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: undefined,
+  isToc: true,
+  postUpdate: '2022年08月07日 17:27:51'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const now = new Date()
+          const hour = now.getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.2.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208061641187.jpeg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">32</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">6</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/photo/"><span> 图库</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208051415812.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">ShaoxiongDu'Blog</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/photo/"><span> 图库</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><span> 关于我</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">JVM-类加载过程<a class="post-edit-link" href="null_posts/JVM-类加载过程.md" title="编辑" target="_blank"><i class="fas fa-pencil-alt"></i></a></h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="fa-fw post-meta-icon far fa-calendar-alt"></i><span class="post-meta-label">发表于</span><time datetime="2022-08-06T12:26:30.000Z" title="发表于 2022年08月06日 20:26:30">2022年08月06日</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%8A%80%E6%9C%AF/">技术</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.8k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>5分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="JVM-类加载过程"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="类加载的过程"><a href="#类加载的过程" class="headerlink" title="类加载的过程"></a>类加载的过程</h1><p><img src="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208051415812.png" alt="image-20210730191532573"></p>
+<p>类加载的过程主要分为三个阶段 加载，链接，初始化。 而链接阶段又可以细分为验证，准备，解析三个子阶段。</p>
+<p>接下来，我们详细分析下类加载的过程。</p>
+<h2 id="加载过程"><a href="#加载过程" class="headerlink" title="加载过程"></a>加载过程</h2><p>加载过程需要完成以下三个事情:</p>
+<ul>
+<li><p>通过一个类的<code>全限定名</code>获取定义此类的<code>二进制字节流</code>；</p>
+</li>
+<li><p>将这个字节流所代表的的<code>静态存储结构</code>转化为方法区的<code>运行时数据结构</code>；</p>
+</li>
+<li><p>在内存中生成一个代表这个类的java.lang.Class对象，作为方法区这个类的各种<code>数据的访问入口 </code></p>
+</li>
+</ul>
+<p>《Java虚拟机规范 》对这三点的要求并不是特别的具体。因此，留给虚拟机实现于Java的应用的灵活度都是很大的。</p>
+<p>在第一步<code>通过一个类的全限定名</code>获取字节流的时候，并没有规范一定是从字节码文件获取，更没有规定是从本地文件中获取。因此，虚拟机的实现者就可以在加载阶段就构建出一个相当开放的舞台。</p>
+<ul>
+<li><p>从ZIP压缩文件中读取，最终成为日后JAR包，WAR包的基础</p>
+</li>
+<li><p>从网络中获取，这种情况最典型的就是Web Applet。</p>
+</li>
+<li><p>运行时生成，从而为后来的动态代理技术奠定了理论基础。</p>
+</li>
+<li><p>从其他文件中生成，典型的应用就是Web中的JSP技术。由JSP文件编译生成字节码文件。</p>
+</li>
+<li><p>从数据库获取，例如中间件服务器，可以选择把程序安装到数据库中完成程序代码在集群中的分发。</p>
+<p>……</p>
+</li>
+</ul>
+<p>加载结束之后，外部的二进制字节流就会以JVM所设定的格式存在于方法区中了。<br>之后会在堆中实例一个java.lang.class类型的对象，<br>这个对象作为程序访问方法区中的类型数据的入口。</p>
+<h2 id="链接过程"><a href="#链接过程" class="headerlink" title="链接过程"></a>链接过程</h2><p><img src="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208051415807.png" alt="加载示例"></p>
+<ol>
+<li><h3 id="验证-Verify"><a href="#验证-Verify" class="headerlink" title="验证(Verify)"></a>验证(Verify)</h3><h5 id="1-目的"><a href="#1-目的" class="headerlink" title="1. 目的:"></a>1. 目的:</h5><p>在于确保Class文件的字节流中包含信息符合当前JVM规范要求，保证被加载类的正确性，不会危害虚拟机自身安全。</p>
+<h5 id="2-主要包括四种验证"><a href="#2-主要包括四种验证" class="headerlink" title="2. 主要包括四种验证"></a>2. 主要包括四种验证</h5><ul>
+<li><p><code>文件格式验证</code></p>
+<ul>
+<li>字节码是否以十六进制的<code>CAFEBABE</code>开头</li>
+<li>主，次版本号是否在当前虚拟机可接受的范围之内。</li>
+<li>常量池的常量中是否有不被支持的类型</li>
+<li>Class文件中是否有被添加的其他恶意信息。</li>
+</ul>
+<p>文件格式验证不止以上，上面所列举的只是从HotSpot虚拟机源码中摘抄的一部分。只有通过这个阶段的验证之后，这一段字节流才会进入虚拟机内存中进行存储，<br>之后的过程都是基于方法区中的存储结构进行的。不会直接读取字节流了。</p>
+</li>
+<li><p><code>源数据验证</code></p>
+<p>用于保证字节码中的代码符合《Java语言规范》</p>
+<ul>
+<li>此类的父类是否是不可继承的类（Final修饰的）</li>
+<li>如果此类不是抽象类，它是否实现了全部需要实现的方法。</li>
+<li>类中的字段，方法是否和父类冲突。</li>
+<li>……</li>
+</ul>
+</li>
+<li><p><code>字节码验证</code></p>
+<p>此过程保证代码是符合逻辑的，对代码的流程进行判断，保证不会出现危害虚拟机安全的情况。</p>
+<ul>
+<li>保证任意时刻操作数栈中的类型和指令代码序列可以正常工作，比如执行到iadd字节码指令，但是操作数栈顶有一位是Long类型的。</li>
+<li>保证代码中的类型转换是有效的。</li>
+</ul>
+<p>如果一个类型中的方法体没有通过次阶段，那它一定是有问题的。但是，不可以认为只要通过此阶段验证，一定没有问题。通过程序去校验程序的逻辑是无法做到绝对准确的。</p>
+</li>
+<li><p><code>符号引用验证</code>。</p>
+<p>此阶段验证符号引用是否合法，主要用于解析阶段的前置任务。</p>
+<p>主要用于判断 该类中是否存在缺少后者被禁止访问它依赖的某些外部类，字段，方法等资源。</p>
+</li>
+</ul>
+</li>
+<li><h3 id="准备-Prepare"><a href="#准备-Prepare" class="headerlink" title="准备(Prepare)"></a>准备(Prepare)</h3><ul>
+<li><p>为类变量（static）分配内存并且设置初始值。</p>
+</li>
+<li><p>这里不包含用final修饰的static，因为final在编译的时候就会分配了，准备阶段会显式初始化；</p>
+</li>
+<li><p>不会为实例变量分配初始化，类变量会分配在方法去中，而实例变量是会随着对象一起分配到java堆中。</p>
+</li>
+</ul>
+</li>
+<li><h3 id="解析-Resolve"><a href="#解析-Resolve" class="headerlink" title="解析(Resolve)"></a>解析(Resolve)</h3><ul>
+<li><p>将常量池内的符号引用转换为直接引用的过程。</p>
+</li>
+<li><p>事实上，解析操作往往会伴随着JVM在执行完初始化之后再执行</p>
+</li>
+<li><p>符号引用就是一组符号来描述所引用的目标。符号应用的字面量形式明确定义在《java虚拟机规范》的class文件格式中。直接引用就是直接指向目标的指针、相对偏移量或一个间接定位到目标的句柄</p>
+</li>
+<li><p>解析动作主要针对类或接口、字段、类方法、接口方法、方法类型等。对应常量池中的<code>CONSTANT_Class_info</code>&#x2F;<code>CONSTANT_Fieldref_info</code>、<code>CONSTANT_Methodref_info</code>等。</p>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="初始化过程"><a href="#初始化过程" class="headerlink" title="初始化过程"></a>初始化过程</h2><ul>
+<li><p>初始化阶段就是执行类构造器方法clInit()的过程。 clInit是ClassInit缩写。此方法并不是程序员定义的构造方法。</p>
+</li>
+<li><p>是javac编译器自动收集类中的所有类变量(Static)的赋值动作和静态代码块中的语句合并而来。</p>
+</li>
+<li><p>构造器方法中指令按语句在源文件中出现的顺序执行</p>
+</li>
+<li><p>若该类具有父类，jvm会保证子类的clinit()执行前，父类的clinit()已经执行完毕</p>
+<p>比如如下代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * @作者: 写Bug的小杜 【email@shaoxiongdu.cn】</span></span><br><span class="line"><span class="comment"> * @时间: 2021/07/30</span></span><br><span class="line"><span class="comment"> * @描述:</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">A</span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span> <span class="variable">a</span> <span class="operator">=</span> <span class="number">10</span>;</span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        a = <span class="number">20</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">B</span> <span class="keyword">extends</span> <span class="title class_">A</span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span> <span class="variable">b</span> <span class="operator">=</span> a;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">CInitTestMain</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        System.out.println(B.b);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过执行，发现B类中b的值为20 由于是父类的CInit方法先执行，也就是说父类的静态代码块中的内容优于子类的赋值操作先执行。</p>
+</li>
+<li><p>虚拟机必须保证一个类的clinit()方法在多线程下被同步加锁。</p>
+<p>验证</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * @作者: 写Bug的小杜 【email@shaoxiongdu.cn】</span></span><br><span class="line"><span class="comment"> * @时间: 2021/07/30</span></span><br><span class="line"><span class="comment"> * @描述: 测试一个类的CInit方法是否被加锁</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">TestClass</span> &#123;</span><br><span class="line">    <span class="keyword">static</span>&#123;</span><br><span class="line">        <span class="comment">// 如果不加这个判断 编译器会报死循环的错误</span></span><br><span class="line">        <span class="keyword">if</span>(<span class="literal">true</span>)&#123;</span><br><span class="line">            System.out.println(Thread.currentThread().getName() + <span class="string">&quot;线程正在执行CInit方法&quot;</span>);</span><br><span class="line">            <span class="keyword">while</span> (<span class="literal">true</span>)&#123;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">DeadLoopClass</span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">Runnable</span> <span class="variable">runnable</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Runnable</span>() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">                System.out.println(Thread.currentThread().getName() + <span class="string">&quot;启动&quot;</span>);</span><br><span class="line">                <span class="type">TestClass</span> <span class="variable">testClass</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">TestClass</span>(); <span class="comment">//触发加载TestClass类</span></span><br><span class="line">                System.out.println(Thread.currentThread().getName() + <span class="string">&quot;结束&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">Thread</span>(runnable).start();</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">Thread</span>(runnable).start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>执行结果如下： 当一条线程死循环在CInit处，别的线程也会阻塞。</p>
+<p><img src="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208051415564.png" alt="image-20210730195642762"></p>
+</li>
+</ul>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/JVM/">JVM</a><a class="post-meta__tags" href="/tags/Java/">Java</a></div><div class="post_share"><div class="social-share" data-image="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208051415812.png" data-sites="wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208061636317.png" target="_blank"><img class="post-qr-code-img" src="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208061636317.png" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li></ul></div></div><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/JVM-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8/" title="JVM-线程安全"><img class="cover" src="https://api.ixiaowai.cn/gqapi/gqapi.php" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022年08月06日</div><div class="title">JVM-线程安全</div></div></a></div><div><a href="/JVM-%E5%88%86%E6%9E%90GC%E6%97%A5%E5%BF%97/" title="JVM-分析GC日志"><img class="cover" src="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208051424156.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022年08月06日</div><div class="title">JVM-分析GC日志</div></div></a></div><div><a href="/JVM-%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%AD%90%E7%B3%BB%E7%BB%9F/" title="类加载子系统"><img class="cover" src="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208051414783.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022年08月06日</div><div class="title">类加载子系统</div></div></a></div><div><a href="/JVM-JVM%E6%89%A7%E8%A1%8C%E5%BC%95%E6%93%8E/" title="JVM-JVM执行引擎"><img class="cover" src="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208051418949" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022年08月06日</div><div class="title">JVM-JVM执行引擎</div></div></a></div><div><a href="/JVM-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E6%A6%82%E8%BF%B0/" title="JVM-性能优化概述"><img class="cover" src="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208051422459.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022年08月06日</div><div class="title">JVM-性能优化概述</div></div></a></div><div><a href="/JVM-%E6%9C%AC%E5%9C%B0%E6%96%B9%E6%B3%95%E6%A0%88/" title="JVM-本地方法栈"><img class="cover" src="https://api.ixiaowai.cn/gqapi/gqapi.php" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022年08月06日</div><div class="title">JVM-本地方法栈</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%B1%BB%E5%8A%A0%E8%BD%BD%E7%9A%84%E8%BF%87%E7%A8%8B"><span class="toc-number">1.</span> <span class="toc-text">类加载的过程</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8A%A0%E8%BD%BD%E8%BF%87%E7%A8%8B"><span class="toc-number">1.1.</span> <span class="toc-text">加载过程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%93%BE%E6%8E%A5%E8%BF%87%E7%A8%8B"><span class="toc-number">1.2.</span> <span class="toc-text">链接过程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81-Verify"><span class="toc-number">1.2.1.</span> <span class="toc-text">验证(Verify)</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-%E7%9B%AE%E7%9A%84"><span class="toc-number">1.2.1.0.1.</span> <span class="toc-text">1. 目的:</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-%E4%B8%BB%E8%A6%81%E5%8C%85%E6%8B%AC%E5%9B%9B%E7%A7%8D%E9%AA%8C%E8%AF%81"><span class="toc-number">1.2.1.0.2.</span> <span class="toc-text">2. 主要包括四种验证</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%87%86%E5%A4%87-Prepare"><span class="toc-number">1.2.2.</span> <span class="toc-text">准备(Prepare)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E6%9E%90-Resolve"><span class="toc-number">1.2.3.</span> <span class="toc-text">解析(Resolve)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E8%BF%87%E7%A8%8B"><span class="toc-number">1.3.</span> <span class="toc-text">初始化过程</span></a></li></ol></li></ol></div></div></div></div></main><footer id="footer" style="background: grey"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2022 By 杜少雄</div><div class="footer_custom_text"><a href="icp链接"><span>备案号： 晋ICP备2020012997号-2</span></a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"></div><div id="rightside-config-show"><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (false){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>(() => {
+  const $mermaidWrap = document.querySelectorAll('#article-container .mermaid-wrap')
+  if ($mermaidWrap.length) {
+    window.runMermaid = () => {
+      window.loadMermaid = true
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+      Array.from($mermaidWrap).forEach((item, index) => {
+        const mermaidSrc = item.firstElementChild
+        const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+        const mermaidID = 'mermaid-' + index
+        const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+        mermaid.mermaidAPI.render(mermaidID, mermaidDefinition, (svgCode) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svgCode)
+        })
+      })
+    }
+
+    const loadMermaid = () => {
+      window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaid)
+    }
+
+    window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+  }
+})()</script></div><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><script defer="defer" id="fluttering_ribbon" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-fluttering-ribbon.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = false;
+POWERMODE.shake = false;
+POWERMODE.mobile = true;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="false" data-text="富强,民主,文明,和谐,自由,平等,公正,法治,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

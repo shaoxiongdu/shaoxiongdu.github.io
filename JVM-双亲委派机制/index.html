@@ -1,0 +1,304 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>JVM-双亲委派机制 | ShaoxiongDu'Blog</title><meta name="keywords" content="JVM,Java"><meta name="author" content="杜少雄"><meta name="copyright" content="杜少雄"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="双亲委派机制介绍​ Java虚拟机对class文件采用的是按需加载的方式， ​ 也就是说当需要使用该类时才会将它的class文件加载到内存生成的class对象。 ​ 而且加载某个类的class文件时，java虚拟机采用的是双亲委派模式。 ​ 即把请求交由父类处理，它是一种任务委派模式 工作原理  如果一个类加载器收到了类加载的请求，它并不会自己加载，而是先把请求委托给父类的加载器执行 如果父类加载">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JVM-双亲委派机制">
+<meta property="og:url" content="https://shaoxiongdu.cn/JVM-%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%9C%BA%E5%88%B6/">
+<meta property="og:site_name" content="ShaoxiongDu&#39;Blog">
+<meta property="og:description" content="双亲委派机制介绍​ Java虚拟机对class文件采用的是按需加载的方式， ​ 也就是说当需要使用该类时才会将它的class文件加载到内存生成的class对象。 ​ 而且加载某个类的class文件时，java虚拟机采用的是双亲委派模式。 ​ 即把请求交由父类处理，它是一种任务委派模式 工作原理  如果一个类加载器收到了类加载的请求，它并不会自己加载，而是先把请求委托给父类的加载器执行 如果父类加载">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208051416768.png">
+<meta property="article:published_time" content="2022-08-06T12:26:31.000Z">
+<meta property="article:modified_time" content="2022-08-07T09:27:51.287Z">
+<meta property="article:author" content="杜少雄">
+<meta property="article:tag" content="JVM">
+<meta property="article:tag" content="Java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208051416768.png"><link rel="shortcut icon" href="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208061641187.jpeg"><link rel="canonical" href="https://shaoxiongdu.cn/JVM-%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%9C%BA%E5%88%B6/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//fonts.googleapis.com" crossorigin=""/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="manifest" href="/pwa/manifest.json"/><link rel="apple-touch-icon" sizes="180x180" href="/pwa/apple-touch-icon.png"/><link rel="icon" type="image/png" sizes="32x32" href="/pwa/32.png"/><link rel="icon" type="image/png" sizes="16x16" href="/pwa/16.png"/><link rel="mask-icon" href="/pwa/safari-pinned-tab.svg" color="#5bbad5"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?f405b56cc9dda40c26acd303eb5b4b7a";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Titillium+Web&amp;display=swap" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁体","msgToSimplifiedChinese":"简体"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: 杜少雄","link":"链接: ","source":"来源: ShaoxiongDu'Blog","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'JVM-双亲委派机制',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: undefined,
+  isToc: true,
+  postUpdate: '2022年08月07日 17:27:51'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const now = new Date()
+          const hour = now.getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.2.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208061641187.jpeg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">32</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">6</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/photo/"><span> 图库</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208051416768.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">ShaoxiongDu'Blog</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/photo/"><span> 图库</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><span> 关于我</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">JVM-双亲委派机制<a class="post-edit-link" href="null_posts/JVM-双亲委派机制.md" title="编辑" target="_blank"><i class="fas fa-pencil-alt"></i></a></h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="fa-fw post-meta-icon far fa-calendar-alt"></i><span class="post-meta-label">发表于</span><time datetime="2022-08-06T12:26:31.000Z" title="发表于 2022年08月06日 20:26:31">2022年08月06日</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%8A%80%E6%9C%AF/">技术</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">545</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>1分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="JVM-双亲委派机制"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="双亲委派机制"><a href="#双亲委派机制" class="headerlink" title="双亲委派机制"></a>双亲委派机制</h1><h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>​ Java虚拟机对class文件采用的是按需加载的方式，</p>
+<p>​ 也就是说当需要使用该类时才会将它的class文件加载到内存生成的class对象。</p>
+<p>​ 而且加载某个类的class文件时，java虚拟机采用的是双亲委派模式。</p>
+<p>​ 即把请求交由父类处理，它是一种任务委派模式</p>
+<h2 id="工作原理"><a href="#工作原理" class="headerlink" title="工作原理"></a>工作原理</h2><p><img src="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208051416768.png" alt="image-20210617212921462"></p>
+<ol>
+<li><h5 id="如果一个类加载器收到了类加载的请求，它并不会自己加载，而是先把请求委托给父类的加载器执行"><a href="#如果一个类加载器收到了类加载的请求，它并不会自己加载，而是先把请求委托给父类的加载器执行" class="headerlink" title="如果一个类加载器收到了类加载的请求，它并不会自己加载，而是先把请求委托给父类的加载器执行"></a>如果一个类加载器收到了类加载的请求，它并不会自己加载，而是先把请求委托给父类的加载器执行</h5></li>
+<li><h5 id="如果父类加载器还有父类，则进一步向上委托，依次递归，请求到达最顶层的引导类加载器。"><a href="#如果父类加载器还有父类，则进一步向上委托，依次递归，请求到达最顶层的引导类加载器。" class="headerlink" title="如果父类加载器还有父类，则进一步向上委托，依次递归，请求到达最顶层的引导类加载器。"></a>如果父类加载器还有父类，则进一步向上委托，依次递归，请求到达最顶层的引导类加载器。</h5></li>
+<li><h5 id="如果顶层类的加载器加载成功，则成功返回。如果失败，则子加载器会尝试加载。直到加载成功。"><a href="#如果顶层类的加载器加载成功，则成功返回。如果失败，则子加载器会尝试加载。直到加载成功。" class="headerlink" title="如果顶层类的加载器加载成功，则成功返回。如果失败，则子加载器会尝试加载。直到加载成功。"></a>如果顶层类的加载器加载成功，则成功返回。如果失败，则子加载器会尝试加载。直到加载成功。</h5></li>
+</ol>
+<h2 id="代码验证"><a href="#代码验证" class="headerlink" title="代码验证"></a>代码验证</h2><p>通过查看最顶层父类ClassLoader的loaderClass方法，我们可以验证双亲委派机制。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> Class&lt;?&gt; loadClass(String name,<span class="type">boolean</span> resolve)</span><br><span class="line">        <span class="keyword">throws</span> ClassNotFoundException</span><br><span class="line">        &#123;</span><br><span class="line"><span class="keyword">synchronized</span> (getClassLoadingLock(name))&#123;</span><br><span class="line">        <span class="comment">// 首先检查此类是否被加载过了 </span></span><br><span class="line">        Class&lt;?&gt; c=findLoadedClass(name);</span><br><span class="line">        <span class="keyword">if</span>(c==<span class="literal">null</span>)&#123;</span><br><span class="line">        <span class="type">long</span> t0=System.nanoTime();</span><br><span class="line">        <span class="keyword">try</span>&#123;</span><br><span class="line">        <span class="comment">// 调用父类的加载器方法</span></span><br><span class="line">        <span class="keyword">if</span>(parent!=<span class="literal">null</span>)&#123;</span><br><span class="line">        c=parent.loadClass(name,<span class="literal">false</span>);</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="comment">// 此时是最顶级的启动类加载器</span></span><br><span class="line">        c=findBootstrapClassOrNull(name);</span><br><span class="line">        &#125;</span><br><span class="line">        &#125;<span class="keyword">catch</span>(ClassNotFoundException e)&#123;</span><br><span class="line">        <span class="comment">// 抛出异常说明父类无法加载</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(c==<span class="literal">null</span>)&#123;</span><br><span class="line">        <span class="comment">//父类无法加载的时候，由子类进行加载。</span></span><br><span class="line">        <span class="comment">// to find the class.</span></span><br><span class="line">        <span class="type">long</span> t1=System.nanoTime();</span><br><span class="line">        c=findClass(name);</span><br><span class="line">        <span class="comment">//记录加载时间已经加载耗时</span></span><br><span class="line">        sun.misc.PerfCounter.getParentDelegationTime().addTime(t1-t0);</span><br><span class="line">        sun.misc.PerfCounter.getFindClassTime().addElapsedTimeFrom(t1);</span><br><span class="line">        sun.misc.PerfCounter.getFindClasses().increment();</span><br><span class="line">        &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(resolve)&#123;</span><br><span class="line">        resolveClass(c);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> c;</span><br><span class="line">        &#125;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="双亲委派机制优势"><a href="#双亲委派机制优势" class="headerlink" title="双亲委派机制优势"></a>双亲委派机制优势</h2><ul>
+<li><p>避免类的重复加载</p>
+<p>当自己程序中定义了一个和Java.lang包同名的类，此时，由于使用的是双亲委派机制，会由启动类加载器去加载<code>JAVA_HOME/lib</code>中的类，而不是加载用户自定义的类。此时，程序可以正常编译，但是自己定义的类无法被加载运行。</p>
+</li>
+<li><p>保护程序安全，防止核心API被随意篡改</p>
+</li>
+</ul>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/JVM/">JVM</a><a class="post-meta__tags" href="/tags/Java/">Java</a></div><div class="post_share"><div class="social-share" data-image="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208051416768.png" data-sites="wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208061636317.png" target="_blank"><img class="post-qr-code-img" src="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208061636317.png" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li></ul></div></div><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/JVM-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8/" title="JVM-线程安全"><img class="cover" src="https://api.ixiaowai.cn/gqapi/gqapi.php" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022年08月06日</div><div class="title">JVM-线程安全</div></div></a></div><div><a href="/JVM-%E5%88%86%E6%9E%90GC%E6%97%A5%E5%BF%97/" title="JVM-分析GC日志"><img class="cover" src="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208051424156.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022年08月06日</div><div class="title">JVM-分析GC日志</div></div></a></div><div><a href="/JVM-%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%AD%90%E7%B3%BB%E7%BB%9F/" title="类加载子系统"><img class="cover" src="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208051414783.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022年08月06日</div><div class="title">类加载子系统</div></div></a></div><div><a href="/JVM-JVM%E6%89%A7%E8%A1%8C%E5%BC%95%E6%93%8E/" title="JVM-JVM执行引擎"><img class="cover" src="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208051418949" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022年08月06日</div><div class="title">JVM-JVM执行引擎</div></div></a></div><div><a href="/JVM-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E6%A6%82%E8%BF%B0/" title="JVM-性能优化概述"><img class="cover" src="https://images-1301128659.cos.ap-beijing.myqcloud.com/MacBookPro202208051422459.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022年08月06日</div><div class="title">JVM-性能优化概述</div></div></a></div><div><a href="/JVM-%E6%9C%AC%E5%9C%B0%E6%96%B9%E6%B3%95%E6%A0%88/" title="JVM-本地方法栈"><img class="cover" src="https://api.ixiaowai.cn/gqapi/gqapi.php" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022年08月06日</div><div class="title">JVM-本地方法栈</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%9C%BA%E5%88%B6"><span class="toc-number">1.</span> <span class="toc-text">双亲委派机制</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.1.</span> <span class="toc-text">介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">1.2.</span> <span class="toc-text">工作原理</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%A6%82%E6%9E%9C%E4%B8%80%E4%B8%AA%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%E6%94%B6%E5%88%B0%E4%BA%86%E7%B1%BB%E5%8A%A0%E8%BD%BD%E7%9A%84%E8%AF%B7%E6%B1%82%EF%BC%8C%E5%AE%83%E5%B9%B6%E4%B8%8D%E4%BC%9A%E8%87%AA%E5%B7%B1%E5%8A%A0%E8%BD%BD%EF%BC%8C%E8%80%8C%E6%98%AF%E5%85%88%E6%8A%8A%E8%AF%B7%E6%B1%82%E5%A7%94%E6%89%98%E7%BB%99%E7%88%B6%E7%B1%BB%E7%9A%84%E5%8A%A0%E8%BD%BD%E5%99%A8%E6%89%A7%E8%A1%8C"><span class="toc-number">1.2.0.0.1.</span> <span class="toc-text">如果一个类加载器收到了类加载的请求，它并不会自己加载，而是先把请求委托给父类的加载器执行</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%A6%82%E6%9E%9C%E7%88%B6%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%E8%BF%98%E6%9C%89%E7%88%B6%E7%B1%BB%EF%BC%8C%E5%88%99%E8%BF%9B%E4%B8%80%E6%AD%A5%E5%90%91%E4%B8%8A%E5%A7%94%E6%89%98%EF%BC%8C%E4%BE%9D%E6%AC%A1%E9%80%92%E5%BD%92%EF%BC%8C%E8%AF%B7%E6%B1%82%E5%88%B0%E8%BE%BE%E6%9C%80%E9%A1%B6%E5%B1%82%E7%9A%84%E5%BC%95%E5%AF%BC%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%E3%80%82"><span class="toc-number">1.2.0.0.2.</span> <span class="toc-text">如果父类加载器还有父类，则进一步向上委托，依次递归，请求到达最顶层的引导类加载器。</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%A6%82%E6%9E%9C%E9%A1%B6%E5%B1%82%E7%B1%BB%E7%9A%84%E5%8A%A0%E8%BD%BD%E5%99%A8%E5%8A%A0%E8%BD%BD%E6%88%90%E5%8A%9F%EF%BC%8C%E5%88%99%E6%88%90%E5%8A%9F%E8%BF%94%E5%9B%9E%E3%80%82%E5%A6%82%E6%9E%9C%E5%A4%B1%E8%B4%A5%EF%BC%8C%E5%88%99%E5%AD%90%E5%8A%A0%E8%BD%BD%E5%99%A8%E4%BC%9A%E5%B0%9D%E8%AF%95%E5%8A%A0%E8%BD%BD%E3%80%82%E7%9B%B4%E5%88%B0%E5%8A%A0%E8%BD%BD%E6%88%90%E5%8A%9F%E3%80%82"><span class="toc-number">1.2.0.0.3.</span> <span class="toc-text">如果顶层类的加载器加载成功，则成功返回。如果失败，则子加载器会尝试加载。直到加载成功。</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E9%AA%8C%E8%AF%81"><span class="toc-number">1.3.</span> <span class="toc-text">代码验证</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%9C%BA%E5%88%B6%E4%BC%98%E5%8A%BF"><span class="toc-number">1.4.</span> <span class="toc-text">双亲委派机制优势</span></a></li></ol></li></ol></div></div></div></div></main><footer id="footer" style="background: grey"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2022 By 杜少雄</div><div class="footer_custom_text"><a href="icp链接"><span>备案号： 晋ICP备2020012997号-2</span></a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"></div><div id="rightside-config-show"><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (false){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>(() => {
+  const $mermaidWrap = document.querySelectorAll('#article-container .mermaid-wrap')
+  if ($mermaidWrap.length) {
+    window.runMermaid = () => {
+      window.loadMermaid = true
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+      Array.from($mermaidWrap).forEach((item, index) => {
+        const mermaidSrc = item.firstElementChild
+        const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+        const mermaidID = 'mermaid-' + index
+        const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+        mermaid.mermaidAPI.render(mermaidID, mermaidDefinition, (svgCode) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svgCode)
+        })
+      })
+    }
+
+    const loadMermaid = () => {
+      window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaid)
+    }
+
+    window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+  }
+})()</script></div><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><script defer="defer" id="fluttering_ribbon" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-fluttering-ribbon.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = false;
+POWERMODE.shake = false;
+POWERMODE.mobile = true;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="false" data-text="富强,民主,文明,和谐,自由,平等,公正,法治,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="true" async="async"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
